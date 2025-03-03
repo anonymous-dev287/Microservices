@@ -1,0 +1,51 @@
+server:
+  port: 8095
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+          
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/login
+
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/accounts/**
+
+        - id: transaction-service
+          uri: lb://transaction-service
+          predicates:
+            - Path=/api/transactions/**
+          filters:
+            - RemoveRequestHeader=Cookie
+            - AddRequestHeader=Authorization, {Authorization}
+            
+        - id: loan-service
+          uri: lb://loan-service
+          predicates:
+            - Path=/api/loans/**            
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true 
+    
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
